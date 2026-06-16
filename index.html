@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>[성심당] 이메일로 ID 찾기 — QA 체크리스트</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #F8F6F3;
+    --surface: #FFFFFF;
+    --border: #E4E0DA;
+    --border-light: #EDE9E3;
+    --text-primary: #1A1714;
+    --text-secondary: #6B6560;
+    --text-hint: #A09A94;
+    --brand: #3D1F0D;
+    --brand-light: #6B3A1F;
+    --check: #1D8A5A;
+    --check-bg: #EAF5EE;
+    --tag-normal-bg: #EBF2FC; --tag-normal: #1A56A4;
+    --tag-except-bg: #FDF0EA; --tag-except: #B84A1E;
+    --tag-ux-bg: #F0EDFB; --tag-ux: #5A3FB5;
+    --tag-policy-bg: #EEFAF3; --tag-policy: #1A7A47;
+  }
+
+  body {
+    font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+    background: var(--bg);
+    color: var(--text-primary);
+    min-height: 100vh;
+    padding: 0 0 4rem;
+  }
+
+  /* Header */
+  .header {
+    background: var(--brand);
+    color: #fff;
+    padding: 2rem 2rem 1.75rem;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .header-inner { max-width: 760px; margin: 0 auto; }
+  .header-eyebrow {
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    color: rgba(255,255,255,0.55);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .header h1 { font-size: 18px; font-weight: 600; letter-spacing: -0.01em; color: #fff; }
+  .header-meta { font-size: 12px; color: rgba(255,255,255,0.5); margin-top: 4px; }
+
+  /* Progress bar */
+  .progress-wrap {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 1rem 2rem;
+    position: sticky;
+    top: 97px;
+    z-index: 99;
+  }
+  .progress-inner { max-width: 760px; margin: 0 auto; }
+  .stat-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  .stat {
+    background: var(--bg);
+    border-radius: 8px;
+    padding: 8px 10px;
+    text-align: center;
+  }
+  .stat-n { font-size: 20px; font-weight: 600; color: var(--text-primary); line-height: 1.2; }
+  .stat-n.green { color: var(--check); }
+  .stat-l { font-size: 11px; color: var(--text-hint); margin-top: 1px; }
+  .bar-bg { height: 5px; background: var(--border); border-radius: 99px; overflow: hidden; }
+  .bar-fill { height: 100%; background: var(--check); border-radius: 99px; transition: width 0.35s cubic-bezier(.4,0,.2,1); width: 0%; }
+
+  /* Main */
+  .main { max-width: 760px; margin: 0 auto; padding: 1.25rem 2rem 0; }
+
+  /* Filter */
+  .filter-row {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    margin-bottom: 1.25rem;
+    flex-wrap: wrap;
+  }
+  .filter-label { font-size: 12px; color: var(--text-hint); margin-right: 2px; }
+  .filter-btn {
+    font-size: 12px;
+    padding: 5px 13px;
+    border-radius: 99px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: inherit;
+  }
+  .filter-btn:hover { border-color: var(--brand-light); color: var(--brand); }
+  .filter-btn.active { background: var(--brand); color: #fff; border-color: var(--brand); }
+  .reset-btn {
+    margin-left: auto;
+    font-size: 12px;
+    padding: 5px 13px;
+    border-radius: 99px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: #B84A1E;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s;
+  }
+  .reset-btn:hover { background: #FDF0EA; border-color: #B84A1E; }
+
+  /* Section */
+  .section { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 10px; overflow: hidden; }
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.85rem 1.25rem;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.12s;
+  }
+  .section-header:hover { background: var(--bg); }
+  .section-title { font-size: 13.5px; font-weight: 600; color: var(--text-primary); display: flex; align-items: center; gap: 8px; }
+  .badge {
+    font-size: 11px; padding: 2px 9px; border-radius: 99px;
+    font-weight: 500; white-space: nowrap;
+  }
+  .badge-total { background: var(--bg); color: var(--text-hint); border: 1px solid var(--border); }
+  .badge-done { background: var(--check-bg); color: var(--check); }
+  .chevron { color: var(--text-hint); font-size: 11px; transition: transform 0.2s; }
+  .section.collapsed .chevron { transform: rotate(-90deg); }
+  .section.collapsed .section-body { display: none; }
+
+  /* Item */
+  .section-body { border-top: 1px solid var(--border-light); }
+  .item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 0.7rem 1.25rem;
+    border-bottom: 1px solid var(--border-light);
+    cursor: pointer;
+    transition: background 0.1s;
+  }
+  .item:last-child { border-bottom: none; }
+  .item:hover { background: #FDFCFB; }
+  .item.done { background: var(--check-bg); }
+  .item.done:hover { background: #DFF0E8; }
+
+  .cb {
+    width: 18px; height: 18px; min-width: 18px;
+    border: 1.5px solid var(--border);
+    border-radius: 5px;
+    margin-top: 1px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+    background: var(--surface);
+  }
+  .cb.checked { background: var(--check); border-color: var(--check); }
+  .cb.checked::after { content: '✓'; color: #fff; font-size: 11px; font-weight: 700; line-height: 1; }
+
+  .item-label {
+    font-size: 13px;
+    color: var(--text-primary);
+    line-height: 1.55;
+    flex: 1;
+  }
+  .item.done .item-label { color: var(--text-secondary); text-decoration: line-through; text-decoration-color: #aaa; }
+  .tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 5px; }
+  .tag { font-size: 10px; padding: 1px 7px; border-radius: 4px; font-weight: 500; }
+  .tag-n { background: var(--tag-normal-bg); color: var(--tag-normal); }
+  .tag-e { background: var(--tag-except-bg); color: var(--tag-except); }
+  .tag-m { background: var(--tag-ux-bg); color: var(--tag-ux); }
+  .tag-p { background: var(--tag-policy-bg); color: var(--tag-policy); }
+
+  /* Legend */
+  .legend { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 1rem; }
+  .legend-item { display: flex; align-items: center; gap: 4px; font-size: 11px; color: var(--text-secondary); }
+  .legend-dot { width: 8px; height: 8px; border-radius: 2px; }
+
+  /* Print */
+  @media print {
+    .filter-row, .reset-btn, .progress-wrap { display: none !important; }
+    .header { position: static; }
+    body { background: #fff; }
+    .section { break-inside: avoid; }
+  }
+
+  @media (max-width: 560px) {
+    .main { padding: 1rem; }
+    .progress-wrap { padding: 0.75rem 1rem; }
+    .header { padding: 1.25rem 1rem 1rem; }
+    .stat-row { grid-template-columns: repeat(2, 1fr); }
+    .stat-n { font-size: 17px; }
+    .progress-wrap { top: 87px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-inner">
+    <div class="header-eyebrow">PAYCO · 비즈그로스팀</div>
+    <h1>[성심당] 이메일로 ID 찾기 — QA 체크리스트</h1>
+    <div class="header-meta">문서 기준: v0.2 (2026.05.06) &nbsp;·&nbsp; 작성: 정유진</div>
+  </div>
+</div>
+
+<div class="progress-wrap">
+  <div class="progress-inner">
+    <div class="stat-row">
+      <div class="stat"><div class="stat-n" id="s-total">0</div><div class="stat-l">전체</div></div>
+      <div class="stat"><div class="stat-n green" id="s-pass">0</div><div class="stat-l">완료</div></div>
+      <div class="stat"><div class="stat-n" id="s-remain">0</div><div class="stat-l">남은 항목</div></div>
+      <div class="stat"><div class="stat-n green" id="s-pct">0%</div><div class="stat-l">진행률</div></div>
+    </div>
+    <div class="bar-bg"><div class="bar-fill" id="bar"></div></div>
+  </div>
+</div>
+
+<div class="main">
+  <div class="filter-row">
+    <span class="filter-label">필터</span>
+    <button class="filter-btn active" data-filter="all">전체</button>
+    <button class="filter-btn" data-filter="정상">정상</button>
+    <button class="filter-btn" data-filter="예외">예외</button>
+    <button class="filter-btn" data-filter="UX">UX</button>
+    <button class="filter-btn" data-filter="정책">정책</button>
+    <button class="reset-btn" id="reset-btn">↺ 초기화</button>
+  </div>
+
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:var(--tag-normal)"></div>정상</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--tag-except)"></div>예외</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--tag-ux)"></div>UX</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--tag-policy)"></div>정책</div>
+  </div>
+
+  <div id="sections"></div>
+</div>
+
+<script>
+const DATA = [
+  {
+    title: "1. 진입 및 탭 전환",
+    items: [
+      { label: "아이디 찾기 화면에서 '휴대폰 인증' / '이메일 인증' 버튼이 모두 노출됨", tags: ["UX"] },
+      { label: "'이메일 인증' 버튼 탭 선택 시 이메일 인증 화면으로 전환됨", tags: ["정상", "UX"] },
+      { label: "'휴대폰 인증' 버튼 탭 선택 시 기존 휴대폰 인증 화면으로 전환됨", tags: ["정상"] },
+      { label: "탭 간 전환 시 이전 입력값이 초기화됨", tags: ["UX"] },
+    ]
+  },
+  {
+    title: "2. 이메일 입력 및 인증번호 발송",
+    items: [
+      { label: "이메일 입력창 선택 시 키보드 활성화 및 X(전체삭제) 버튼 노출됨", tags: ["UX"] },
+      { label: "X 버튼 클릭 시 입력창 전체 삭제됨", tags: ["UX"] },
+      { label: "이메일 도메인 선택 드롭다운 동작 확인 (직접입력 / naver.com / gmail.com 등 목록 노출)", tags: ["UX"] },
+      { label: "'직접입력' 선택 시 도메인 직접 입력 가능함", tags: ["UX"] },
+      { label: "이메일 입력 후 '인증번호 받기' 버튼 활성화됨", tags: ["정상"] },
+      { label: "'인증번호 받기' 클릭 시 입력한 이메일로 인증코드 발송됨", tags: ["정상"] },
+      { label: "발송 성공 팝업 노출됨 — '인증 메일을 발송했습니다. (이메일주소) 메일을 확인해 주세요.'", tags: ["정상", "UX"] },
+      { label: "인증코드 형식이 숫자 6자리임을 수신 메일에서 확인", tags: ["정책"] },
+      { label: "인증번호 입력창과 유효시간 카운트다운(3:00)이 노출됨", tags: ["정상", "UX"] },
+    ]
+  },
+  {
+    title: "3. 인증코드 검증 — 정상 케이스",
+    items: [
+      { label: "유효시간 내 올바른 인증코드 입력 후 '확인' 클릭 시 검증 성공", tags: ["정상"] },
+      { label: "검증 성공 시 가입된 아이디 전체가 노출됨", tags: ["정상", "정책"] },
+      { label: "아이디 확인 후 '로그인 화면으로 이동' 버튼 정상 동작", tags: ["정상"] },
+    ]
+  },
+  {
+    title: "4. 예외 케이스 — 인증코드 불일치",
+    items: [
+      { label: "잘못된 인증코드 입력 후 '확인' 클릭 시 오류 팝업 노출됨", tags: ["예외"] },
+      { label: "팝업 메시지: '인증번호가 일치하지 않습니다.'", tags: ["예외", "UX"] },
+
+    ]
+  },
+  {
+    title: "5. 예외 케이스 — 유효시간 초과",
+    items: [
+      { label: "3분 경과 후 카운트다운이 00:00으로 표시되고 만료 처리됨", tags: ["예외", "정책"] },
+      { label: "만료 후 '확인' 클릭 시 시간 초과 팝업 노출됨", tags: ["예외"] },
+      { label: "팝업 메시지: '인증 유효시간이 초과되었습니다. [인증번호 받기]를 다시 눌러 주세요.'", tags: ["예외", "UX"] },
+      { label: "팝업 확인 후 '인증번호 받기' 재클릭 시 신규 인증코드 재발송됨", tags: ["예외", "정상"] },
+      { label: "재발송 대기 시간 없음 — 즉시 재발송 가능 확인", tags: ["예외", "정책"] },
+      { label: "재발송 시 유효시간이 3분으로 초기화됨", tags: ["예외", "정책"] },
+    ]
+  },
+  {
+    title: "6. 예외 케이스 — 미가입 이메일",
+    items: [
+      { label: "미가입 이메일로 인증코드 발송 후 인증 성공 시 '일치하는 아이디 없음' 안내 노출됨", tags: ["예외", "정책"] },
+
+    ]
+  },
+  {
+    title: "7. 정책 및 경계값 검증",
+    items: [
+      { label: "이메일 형식 오류 입력 시 '인증번호 받기' 버튼 비활성화 또는 오류 안내 노출", tags: ["정책"] },
+      { label: "인증번호 입력란에 6자리 미만 입력 시 '확인' 버튼 비활성화 또는 오류 처리", tags: ["정책"] },
+
+      { label: "동일 이메일로 연속 중복 발송 시 동작 확인", tags: ["정책"] },
+    ]
+  },
+  {
+    title: "8. 회귀(Regression) — 기존 휴대폰 인증",
+    items: [
+      { label: "이메일 인증 기능 추가 후 기존 '휴대폰 인증' 탭 정상 동작 확인", tags: ["정상"] },
+      { label: "휴대폰 인증 → 이메일 인증 탭 전환 후 다시 휴대폰 인증 재진입 시 정상 동작", tags: ["정상"] },
+    ]
+  }
+];
+
+let checks = JSON.parse(localStorage.getItem('ss_qa_checks') || '{}');
+let currentFilter = 'all';
+
+function save() {
+  try { localStorage.setItem('ss_qa_checks', JSON.stringify(checks)); } catch(e){}
+}
+
+function tagClass(t) {
+  return t === '정상' ? 'tag-n' : t === '예외' ? 'tag-e' : t === 'UX' ? 'tag-m' : 'tag-p';
+}
+
+function render() {
+  const container = document.getElementById('sections');
+  container.innerHTML = '';
+
+  DATA.forEach((sec, si) => {
+    const filtered = currentFilter === 'all'
+      ? sec.items.map((item, ii) => ({ item, ii }))
+      : sec.items.map((item, ii) => ({ item, ii })).filter(({ item }) => item.tags.includes(currentFilter));
+    if (!filtered.length) return;
+
+    const secDone = filtered.filter(({ ii }) => checks[`${si}-${ii}`]).length;
+
+    const div = document.createElement('div');
+    div.className = 'section';
+    div.innerHTML = `
+      <div class="section-header" data-si="${si}">
+        <div class="section-title">
+          <span>${sec.title}</span>
+          <span class="badge badge-total">${filtered.length}건</span>
+          ${secDone > 0 ? `<span class="badge badge-done">${secDone} 완료</span>` : ''}
+        </div>
+        <span class="chevron">▾</span>
+      </div>
+      <div class="section-body">
+        ${filtered.map(({ item, ii }) => {
+          const key = `${si}-${ii}`;
+          const done = !!checks[key];
+          return `<div class="item${done ? ' done' : ''}" data-key="${key}">
+            <div class="cb${done ? ' checked' : ''}"></div>
+            <div style="flex:1">
+              <div class="item-label">${item.label}</div>
+              <div class="tags">${item.tags.map(t => `<span class="tag ${tagClass(t)}">${t}</span>`).join('')}</div>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>`;
+    container.appendChild(div);
+  });
+
+  updateStats();
+  bindEvents();
+}
+
+function bindEvents() {
+  document.querySelectorAll('.section-header').forEach(h => {
+    h.addEventListener('click', () => {
+      h.closest('.section').classList.toggle('collapsed');
+    });
+  });
+  document.querySelectorAll('.item').forEach(el => {
+    el.addEventListener('click', () => {
+      const key = el.dataset.key;
+      checks[key] = !checks[key];
+      save();
+      render();
+    });
+  });
+}
+
+function updateStats() {
+  let total = 0, passed = 0;
+  DATA.forEach((sec, si) => {
+    const filtered = currentFilter === 'all'
+      ? sec.items.map((_, ii) => ii)
+      : sec.items.map((item, ii) => ({ item, ii })).filter(({ item }) => item.tags.includes(currentFilter)).map(({ ii }) => ii);
+    filtered.forEach(ii => {
+      total++;
+      if (checks[`${si}-${ii}`]) passed++;
+    });
+  });
+  const pct = total ? Math.round(passed / total * 100) : 0;
+  document.getElementById('s-total').textContent = total;
+  document.getElementById('s-pass').textContent = passed;
+  document.getElementById('s-remain').textContent = total - passed;
+  document.getElementById('s-pct').textContent = pct + '%';
+  document.getElementById('bar').style.width = pct + '%';
+}
+
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentFilter = btn.dataset.filter;
+    render();
+  });
+});
+
+document.getElementById('reset-btn').addEventListener('click', () => {
+  if (confirm('체크한 항목을 모두 초기화할까요?')) {
+    checks = {};
+    save();
+    render();
+  }
+});
+
+render();
+</script>
+</body>
+</html>
