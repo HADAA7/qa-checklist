@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>[성심당] 이메일로 ID 찾기 — QA 체크리스트</title>
+<title>[성심당] 이메일로 ID 찾기 QA 체크리스트</title>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -213,7 +213,7 @@
 <div class="header">
   <div class="header-inner">
     <div class="header-eyebrow">PAYCO · 비즈그로스팀</div>
-    <h1>[성심당] 이메일로 ID 찾기 — QA 체크리스트</h1>
+    <h1>[성심당] 이메일로 ID 찾기 QA 체크리스트</h1>
     <div class="header-meta">문서 기준: v0.2 (2026.05.06) &nbsp;·&nbsp; 작성: 정유진</div>
   </div>
 </div>
@@ -277,7 +277,7 @@ const DATA = [
     ]
   },
   {
-    title: "3. 인증코드 검증 — 정상 케이스",
+    title: "3. 인증코드 검증 - 정상 케이스",
     items: [
       { label: "유효시간 내 올바른 인증코드 입력 후 '확인' 클릭 시 검증 성공", tags: ["정상"] },
       { label: "검증 성공 시 가입된 아이디 전체가 노출됨", tags: ["정상", "정책"] },
@@ -285,7 +285,7 @@ const DATA = [
     ]
   },
   {
-    title: "4. 예외 케이스 — 인증코드 불일치",
+    title: "4. 예외 케이스 - 인증코드 불일치",
     items: [
       { label: "잘못된 인증코드 입력 후 '확인' 클릭 시 오류 팝업 노출됨", tags: ["예외"] },
       { label: "팝업 메시지: '인증번호가 일치하지 않습니다.'", tags: ["예외", "UX"] },
@@ -293,7 +293,7 @@ const DATA = [
     ]
   },
   {
-    title: "5. 예외 케이스 — 유효시간 초과",
+    title: "5. 예외 케이스 - 유효시간 관련",
     items: [
       { label: "3분 경과 후 카운트다운이 00:00으로 표시되고 만료 처리됨", tags: ["예외", "정책"] },
       { label: "만료 후 '확인' 클릭 시 시간 초과 팝업 노출됨", tags: ["예외"] },
@@ -304,14 +304,14 @@ const DATA = [
     ]
   },
   {
-    title: "6. 예외 케이스 — 미가입 이메일",
+    title: "6. 예외 케이스",
     items: [
       { label: "미가입 이메일로 인증코드 발송 후 인증 성공 시 '일치하는 아이디 없음' 안내 노출됨", tags: ["예외", "정책"] },
 
     ]
   },
   {
-    title: "7. 정책 및 경계값 검증",
+    title: "7. 정책 관련",
     items: [
       { label: "이메일 형식 오류 입력 시 '인증번호 받기' 버튼 비활성화 또는 오류 안내 노출", tags: ["정책"] },
       { label: "인증번호 입력란에 6자리 미만 입력 시 '확인' 버튼 비활성화 또는 오류 처리", tags: ["정책"] },
@@ -320,7 +320,7 @@ const DATA = [
     ]
   },
   {
-    title: "8. 회귀(Regression) — 기존 휴대폰 인증",
+    title: "8. 회귀 - 기존 휴대폰 인증",
     items: [
       { label: "이메일 인증 기능 추가 후 기존 '휴대폰 인증' 탭 정상 동작 확인", tags: ["정상"] },
       { label: "휴대폰 인증 → 이메일 인증 탭 전환 후 다시 휴대폰 인증 재진입 시 정상 동작", tags: ["정상"] },
